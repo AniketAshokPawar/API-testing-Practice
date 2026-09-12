@@ -62,3 +62,25 @@ Used to validate specific response headers.
 **Difference between `toBe(200)` and `toBeOK()`?**
 
 > `toBe(200)` checks for exactly 200, whereas `toBeOK()` checks whether the response status is successful in the 2xx range.
+
+```
+```
+
+### Complete example
+
+```
+import {test,expect} from '@playwright/test';
+
+test("API topic 06 test", async({request})=>{
+
+    const response = await request.get('https://jsonplaceholder.typicode.com/users/1');
+
+    const responseBody = await response.json();
+
+    await expect(response).toBeOK();
+    expect(responseBody.id).toBe(1);
+    expect(responseBody.name).toBe("Leanne Graham");
+
+    expect(response.headers()['content-type']).toContain('application/json');
+})
+```
