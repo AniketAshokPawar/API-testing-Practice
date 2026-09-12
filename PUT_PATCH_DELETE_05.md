@@ -1,4 +1,4 @@
-Topic 5 --- PUT & PATCH API
+Topic 5 --- PUT, PATCH & DELETE API
 -------------------------
 
 ### 1\. PUT
@@ -137,5 +137,77 @@ test("API topic 04 test", async({request})=>{
 
  console.log(`After patch:${patchResponseBody}`);
 
+})
+```
+
+DELETE API
+----------
+
+### DELETE
+
+-   Used to **delete/remove a resource** from the server.
+-   Playwright syntax:
+
+```
+const response = await request.delete(url);
+```
+
+### Status Codes
+
+| Status | Meaning |
+| --- | --- |
+| `200` | Delete successful, response may contain body |
+| `202` | Delete request accepted for processing |
+| `204` | Delete successful, no response body |
+
+> Expected status depends on the API contract. DELETE does **not always return 200**.
+
+### Response Body
+
+-   DELETE may or may not return a response body.
+-   If JSON is returned:
+
+```
+const responseBody = await response.json();
+```
+
+-   For `204 No Content`, there is no response body to read.
+
+### DELETE vs PATCH
+
+| Method | Purpose |
+| --- | --- |
+| `DELETE` | Delete the resource |
+| `PATCH` | Partially update the resource |
+| `PUT` | Generally replace/update the complete resource |
+
+-   DELETE normally **does not delete individual fields** from an object.
+-   If only a field needs to be removed, the API may provide a `PATCH` or a specific API operation for that purpose.
+
+### VVIP Interview Questions
+
+**Q1. What is DELETE used for?**\
+To remove a resource from the server.
+
+**Q2. Does DELETE always return 200?**\
+No. It can commonly return `200`, `202`, or `204`, depending on the API contract.
+
+**Q3. Can DELETE delete individual fields?**\
+Normally no. DELETE is intended to remove the resource. Removing individual fields is generally handled through PATCH or an API-specific operation.
+
+```
+```
+
+### Complete example
+
+```
+import {test, expect} from "@playwright/test";
+
+test("API topic 05 test", async({request})=>{
+
+    const response = await request.delete('https://jsonplaceholder.typicode.com/posts/1');
+
+    expect(response.status()).toBe(200);
+    console.log(`Status code: ${response.status()}`);
 })
 ```
