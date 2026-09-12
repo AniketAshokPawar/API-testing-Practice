@@ -51,13 +51,4 @@ We'll cover it in this order:
 -   Environment/base URL
 -   Test data
 
-1.  **Real interview scenarios**
-
--   How do you test APIs?
--   How do you validate response?
--   How do you handle authentication?
--   How do you extract values from response?
--   How do you chain APIs?
--   API vs UI testing
--   How do you integrate API testing into Playwright framework?
 
