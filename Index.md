@@ -61,4 +61,3 @@ We'll cover it in this order:
 -   API vs UI testing
 -   How do you integrate API testing into Playwright framework?
 
-1.  **VVIP interview questions + coding practice**
