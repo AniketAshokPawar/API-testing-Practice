@@ -424,3 +424,453 @@ It means the **intended server state** remains the same after repeated identical
 ### 🎯 Interview answer
 
 > Idempotency means that making the same request multiple times has the same intended effect on the server state as making it once. GET, PUT and DELETE are generally considered idempotent, while POST is generally non-idempotent. PATCH depends on how the API operation is designed.
+
+6\. ⭐⭐⭐ Explain important HTTP status codes: 200, 201, 204, 400, 401, 403, 404, 409, 500.
+===============================================================
+
+HTTP Status Codes with Simple Examples
+--------------------------------------
+
+Assume we have a user API:
+
+```
+/users/101
+```
+
+### 200 --- OK ✅
+
+The request was successful, and the server returns a response.
+
+Example:
+
+```
+GET /users/101
+```
+
+Response:
+
+```
+{
+  "id": 101,
+  "name": "Aniket"
+}
+```
+
+Meaning: User details were successfully fetched.
+
+### 201 --- Created ✅
+
+The request was successful, and a new resource was created.
+
+Example:
+
+```
+POST /users
+```
+
+Request body:
+
+```
+{
+  "name": "Aniket",
+  "email": "aniket@test.com"
+}
+```
+
+Response:
+
+```
+{
+  "id": 101,
+  "name": "Aniket",
+  "email": "aniket@test.com"
+}
+```
+
+Meaning: A new user was successfully created.
+
+### 204 --- No Content ✅
+
+The request was successful, but the server does not return a response body.
+
+Example:
+
+```
+DELETE /users/101
+```
+
+Response:
+
+```
+204 No Content
+```
+
+Meaning: User 101 was deleted successfully, and there is no response body.
+
+### 400 --- Bad Request ❌
+
+The client sent invalid or incomplete data.
+
+Example:
+
+```
+POST /users
+```
+
+Request body:
+
+```
+{
+  "name": "Aniket"
+}
+```
+
+Suppose the API requires both `name` and `email`.
+
+Response:
+
+```
+{
+  "error": "Email is required"
+}
+```
+
+Meaning: The request data is invalid.
+
+### 401 --- Unauthorized ❌
+
+The request does not contain valid authentication credentials.
+
+Example:
+
+```
+GET /users/101
+Authorization: Bearer invalid_token
+```
+
+Response:
+
+```
+{
+  "error": "Invalid or expired token"
+}
+```
+
+Meaning: The user must provide valid authentication credentials.
+
+> Simple memory trick: 401 = Who are you?
+
+### 403 --- Forbidden ❌
+
+The user is authenticated, but does not have permission to perform the action.
+
+Example:
+
+A normal user tries to delete another user:
+
+```
+DELETE /users/101
+Authorization: Bearer valid_user_token
+```
+
+Response:
+
+```
+{
+  "error": "You do not have permission to delete users"
+}
+```
+
+Meaning: The user is logged in, but is not allowed to perform this action.
+
+> Simple memory trick: 403 = I know who you are, but you are not allowed.
+
+### 404 --- Not Found ❌
+
+The requested resource does not exist.
+
+Example:
+
+```
+GET /users/999
+```
+
+Suppose user `999` does not exist.
+
+Response:
+
+```
+{
+  "error": "User not found"
+}
+```
+
+Meaning: The requested user or endpoint could not be found.
+
+### 409 --- Conflict ❌
+
+The request conflicts with the current server data.
+
+Example:
+
+A user already exists with this email:
+
+```
+POST /users
+```
+
+```
+{
+  "name": "Aniket",
+  "email": "aniket@test.com"
+}
+```
+
+Response:
+
+```
+{
+  "error": "Email already exists"
+}
+```
+
+Meaning: Creating this user conflicts with an existing user.
+
+Other examples include:
+
+-   Duplicate username
+
+-   Duplicate email
+
+-   Trying to book an already-booked seat
+
+-   Updating a record that was changed by another user
+
+### 500 --- Internal Server Error ❌
+
+Something unexpected went wrong inside the server.
+
+Example:
+
+```
+GET /users/101
+```
+
+The server has a database failure or an unhandled exception.
+
+Response:
+
+```
+{
+  "error": "Internal server error"
+}
+```
+
+Meaning: The request reached the server, but the server failed while processing it.
+
+8\. ⭐⭐⭐ Difference between path parameter, query parameter and request body?
+============================================================================
+
+Very important.
+
+Path parameter
+--------------
+
+Used to identify a specific resource.
+
+```
+GET /users/101
+```
+
+Here:
+
+```
+101
+```
+
+is the path parameter.
+
+Playwright:
+
+```
+await request.get('/users/101');
+```
+
+* * * * *
+
+Query parameter
+---------------
+
+Usually used for filtering, searching, sorting or pagination.
+
+```
+GET /users?page=2&limit=10
+```
+
+Here:
+
+```
+page=2
+limit=10
+```
+
+are query parameters.
+
+Playwright:
+
+```
+await request.get('/users', {
+    params: {
+        page: 2,
+        limit: 10
+    }
+});
+```
+
+* * * * *
+
+Request body
+------------
+
+Used to send data to the server, commonly with POST/PUT/PATCH.
+
+```
+{
+  "name": "Aniket",
+  "email": "aniket@test.com"
+}
+```
+
+Playwright:
+
+```
+await request.post('/users', {
+    data: {
+        name: "Aniket",
+        email: "aniket@test.com"
+    }
+});
+```
+
+### Easy memory
+
+> **Path = which resource**\
+> **Query = filtering/options**\
+> **Body = data being sent**
+
+9\. ⭐⭐⭐ What are request headers and response headers?
+======================================================
+
+Headers contain **metadata/information about the HTTP request or response**.
+
+### Request headers
+
+Sent from client → server.
+
+Example:
+
+```
+Authorization: Bearer abc123
+Content-Type: application/json
+Accept: application/json
+```
+
+### Response headers
+
+Sent from server → client.
+
+Example:
+
+```
+Content-Type: application/json
+Cache-Control: no-cache
+```
+
+### In Playwright
+
+Send headers:
+
+```
+const response = await request.get('/users', {
+    headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+    }
+});
+```
+
+Read response headers:
+
+```
+const headers = response.headers();
+
+console.log(headers);
+```
+
+Validate:
+
+```
+expect(response.headers()['content-type'])
+    .toContain('application/json');
+```
+
+### 🎯 Interview answer
+
+> Headers contain metadata that provides additional information about an HTTP request or response. Request headers can contain things like authentication and content type, while response headers can provide information such as the response content type and caching behavior.
+
+10\. ⭐⭐⭐ What is authentication vs authorization?
+=================================================
+
+This is extremely common.
+
+### Authentication
+
+**Authentication = Who are you?**
+
+Example:
+
+```
+Username + Password
+       ↓
+Login successful
+       ↓
+Token generated
+```
+
+### Authorization
+
+**Authorization = What are you allowed to do?**
+
+Example:
+
+```
+User logged in
+       ↓
+Is this user allowed to delete an order?
+       ↓
+Yes / No
+```
+
+### Real example
+
+Suppose:
+
+```
+Aniket logs in successfully
+```
+
+That's **authentication**.
+
+Then:
+
+```
+Aniket tries to delete another user's account
+```
+
+The system checks whether Aniket has permission.
+
+That's **authorization**.
+
+### 🎯 Interview answer
+
+> Authentication verifies the identity of the user or client, while authorization determines what that authenticated user or client is allowed to access or perform.
