@@ -1434,3 +1434,243 @@ Checks whether the response is generally successful, usually within the 2xx rang
 ### Interview answer
 
 > I validate the exact status code using `response.status()`. Then I parse the body using `response.json()` and verify important fields with assertions. I also check response headers such as `content-type`. When I only need to verify that the response is successful, I use `toBeOK()`.
+
+21\. What is `expect(response).toBeOK()` and how is it different from `status() === 200`?
+=========================================================================================
+
+Suppose we send:
+
+```
+const response = await request.get('/users/101');
+```
+
+### Option 1 --- Check exact status
+
+```
+expect(response.status()).toBe(200);
+```
+
+This means:
+
+> **I specifically expect status code 200.**
+
+If the API returns `201`, `204`, etc., this assertion fails.
+
+* * * * *
+
+### Option 2 --- `toBeOK()`
+
+```
+await expect(response).toBeOK();
+```
+
+This means:
+
+> **I expect the API request to be successful.**
+
+`toBeOK()` checks for a successful **2xx status**.
+
+For example:
+
+```
+200 → ✅
+201 → ✅
+204 → ✅
+
+400 → ❌
+401 → ❌
+404 → ❌
+500 → ❌
+```
+
+### Simple difference
+
+| Code | Meaning |
+| --- | --- |
+| `response.status() === 200` | I want **exactly 200** |
+| `expect(response).toBeOK()` | I want a **successful 2xx response** |
+
+### When would you use which?
+
+If your API contract specifically says:
+
+> GET `/users/101` must return 200
+
+Use:
+
+```
+expect(response.status()).toBe(200);
+```
+
+If you only care that the request was successful:
+
+```
+await expect(response).toBeOK();
+```
+
+### 🎯 Interview answer
+
+> `toBeOK()` verifies that the response has a successful 2xx status code. `response.status()` allows me to check an exact status code, such as 200. So if I specifically expect 200, I use `status()`, while `toBeOK()` is useful when any successful 2xx response is acceptable.
+
+* * * * *
+
+22\. How do you pass headers, query parameters and request body in Playwright?
+==============================================================================
+
+This is **very important practically**.
+
+There are three different things:
+
+-   **Headers** → additional information about the request
+-   **Query parameters** → parameters added to the URL
+-   **Request body** → data sent inside the request
+
+* * * * *
+
+1\. Headers
+-----------
+
+Example:
+
+```
+Authorization: Bearer abc123
+Content-Type: application/json
+```
+
+In Playwright:
+
+```
+const response = await request.get('/users/101', {
+  headers: {
+    Authorization: 'Bearer abc123',
+    'Content-Type': 'application/json',
+  },
+});
+```
+
+* * * * *
+
+2\. Query parameters
+--------------------
+
+Suppose API URL is:
+
+```
+/users?role=QA&status=Active
+```
+
+Instead of manually creating the URL, Playwright allows:
+
+```
+const response = await request.get('/users', {
+  params: {
+    role: 'QA',
+    status: 'Active',
+  },
+});
+```
+
+Playwright creates:
+
+```
+/users?role=QA&status=Active
+```
+
+### Another example
+
+```
+const response = await request.get('/users', {
+  params: {
+    page: 2,
+    limit: 10,
+  },
+});
+```
+
+* * * * *
+
+3\. Request body
+----------------
+
+Usually used with POST, PUT and PATCH.
+
+```
+const response = await request.post('/users', {
+  data: {
+    name: 'Aniket',
+    email: 'aniket@test.com',
+    role: 'QA',
+  },
+});
+```
+
+The JSON body sent is:
+
+```
+{
+  "name": "Aniket",
+  "email": "aniket@test.com",
+  "role": "QA"
+}
+```
+
+### 🎯 Interview answer
+
+> In Playwright, I pass headers using the `headers` option, query parameters using `params`, and request body using the `data` option. For example, `headers` can contain authentication information, `params` are used for URL query parameters, and `data` is used to send JSON request data.
+
+### Quick memory
+
+```
+request.get(url, {
+  headers: {},   // Header
+  params: {},    // Query parameter
+  data: {},      // Request body
+});
+```
+
+* * * * *
+
+23\. How do you reuse authentication/token in Playwright API tests?
+===================================================================
+
+Imagine you have **10 API tests**.
+
+If every test does this:
+
+```
+Login
+ ↓
+Get token
+ ↓
+Call API
+```
+
+then you're unnecessarily logging in 10 times.
+
+Instead, we can get the token once and reuse it.
+
+### Simple example
+
+Suppose login API returns:
+
+```
+{
+  "token": "abc123xyz"
+}
+```
+
+We store it:
+
+```
+const token = loginResponseBody.token;
+```
+
+Then use it:
+
+```
+const response = await request.get('/users/101', {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
+```
