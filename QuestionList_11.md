@@ -1147,3 +1147,172 @@ You may see it in:
 -   Some admin tools
 
 It is less common for modern public applications compared with token-based authentication.
+
+
+13\. What is API Chaining?
+==========================
+
+API chaining means using the response from one API request as input for another API request.
+
+### Real example: Create user → Get user
+
+### Step 1: Create a user
+
+```
+POST /users
+```
+
+Response:
+
+```
+{
+  "id": 101,
+  "name": "Aniket"
+}
+```
+
+### Step 2: Use the returned ID
+
+```
+GET /users/101
+```
+
+Here, the `id` received from the POST response is used in the GET request.
+
+### Playwright example
+
+```
+test('API chaining', async ({ request }) => {
+  const createResponse = await request.post('/users', {
+    data: {
+      name: 'Aniket',
+      email: 'aniket@test.com',
+    },
+  });
+
+  expect(createResponse.status()).toBe(201);
+
+  const createdUser = await createResponse.json();
+  const userId = createdUser.id;
+
+  const getResponse = await request.get(`/users/${userId}`);
+
+  expect(getResponse.status()).toBe(200);
+});
+```
+
+Interview answer:
+
+> API chaining means passing data from one API response to the next API request. For example, after creating a user, I take the generated user ID and use it to fetch or update that user.
+
+14\. How do you perform Negative API Testing?
+=============================================
+
+Negative API testing checks how the API behaves when invalid or unexpected input is provided.
+
+We should verify that:
+
+-   The API returns the correct error status.
+
+-   The error message is meaningful.
+
+-   Invalid data is not saved.
+
+-   Sensitive information is not exposed.
+
+
+### Playwright example
+
+```
+test('Reject user creation without email', async ({ request }) => {
+  const response = await request.post('/users', {
+    data: {
+      name: 'Aniket',
+    },
+  });
+
+  expect(response.status()).toBe(400);
+
+  const body = await response.json();
+  expect(body.error).toContain('email');
+});
+```
+
+Interview answer:
+
+> In negative API testing, I send invalid data, missing fields, invalid tokens, incorrect IDs, and unauthorized requests. Then I verify the expected error status, error message, and that the invalid operation was not completed.
+
+15\. How do you validate an API response?
+=========================================
+
+I validate an API response at different levels:
+
+1.  Status code
+
+2.  Response body
+
+3.  Important fields
+
+4.  Headers
+
+5.  Response time, when required
+
+6.  Schema, if contract validation is needed
+
+### Playwright example
+
+```
+test('Validate API response', async ({ request }) => {
+  const response = await request.get('/users/101');
+
+  expect(response.status()).toBe(200);
+
+  const body = await response.json();
+
+  expect(body.id).toBe(101);
+  expect(body.name).toBe('Aniket');
+  expect(body.email).toContain('@');
+
+  expect(response.headers()['content-type'])
+    .toContain('application/json');
+});
+```
+
+Interview answer:
+
+> I validate the status code first, then parse the response body and verify important fields and their values. I also validate headers, error messages, and response schema when required.
+
+16\. How do you perform API testing using Playwright?
+=====================================================
+
+Playwright supports API testing through its request functionality. We can send HTTP requests without opening a browser.
+
+### Basic flow
+
+1.  Use the `request` fixture.
+
+2.  Send a GET, POST, PUT, PATCH, or DELETE request.
+
+3.  Read the response.
+
+4.  Validate status, body, fields, and headers.
+
+### Example
+
+```
+import { test, expect } from '@playwright/test';
+
+test('Get user API', async ({ request }) => {
+  const response = await request.get('/users/101');
+
+  expect(response.status()).toBe(200);
+
+  const body = await response.json();
+
+  expect(body.id).toBe(101);
+});
+```
+
+Interview answer:
+
+> In Playwright, I use the `request` fixture to send API requests. I validate the response status, JSON body, fields, headers, and error scenarios using Playwright assertions.
