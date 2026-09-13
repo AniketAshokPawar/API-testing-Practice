@@ -1674,3 +1674,163 @@ const response = await request.get('/users/101', {
   },
 });
 ```
+24\. How would you create data through API and verify it through UI?
+====================================================================
+
+This is a **very common real-world automation technique**.
+
+Suppose your UI has a user-management page.
+
+Normally, to test:
+
+> "Verify that newly created user appears in the UI"
+
+you might manually go through:
+
+```
+Login
+ ↓
+Open Users
+ ↓
+Click Add User
+ ↓
+Fill form
+ ↓
+Submit
+ ↓
+Search user
+```
+
+That's slow.
+
+Instead:
+
+### Step 1 --- Create user through API
+
+```
+const response = await request.post('/users', {
+  data: {
+    name: 'Aniket',
+    email: 'aniket@test.com',
+  },
+});
+
+expect(response.status()).toBe(201);
+```
+
+Now the user exists in the backend.
+
+### Step 2 --- Open UI
+
+```
+await page.goto('/users');
+```
+
+### Step 3 --- Search for the user
+
+```
+await page.getByPlaceholder('Search').fill('aniket@test.com');
+```
+
+### Step 4 --- Verify
+
+```
+await expect(
+  page.getByText('aniket@test.com')
+).toBeVisible();
+```
+
+### Why do this?
+
+Because **API is much faster for test-data creation**.
+
+Instead of spending 20 seconds creating a user through UI, you can create it through API almost instantly and use the UI only for the functionality you're actually testing.
+
+### 🎯 Interview answer
+
+> I can use an API request to quickly create the required test data, then open the application through the UI and verify that the created data is displayed correctly. This makes test execution faster and avoids unnecessary UI steps for test-data setup.
+
+* * * * *
+
+25\. How would you perform a UI action and validate the result through API?
+===========================================================================
+
+This is basically the **opposite of Question 24**.
+
+Suppose the UI has:
+
+```
+User Status: Active
+
+[Deactivate]
+```
+
+We click **Deactivate** through UI.
+
+Then instead of checking only the UI, we can verify the backend using API.
+
+* * * * *
+
+### Step 1 --- Perform action through UI
+
+```
+await page.getByRole('button', {
+  name: 'Deactivate'
+}).click();
+```
+
+* * * * *
+
+### Step 2 --- Call API
+
+```
+const response = await request.get('/users/101');
+
+expect(response.status()).toBe(200);
+```
+
+* * * * *
+
+### Step 3 --- Check backend data
+
+```
+const body = await response.json();
+
+expect(body.status).toBe('Inactive');
+```
+
+So our test becomes:
+
+```
+UI action
+   ↓
+Click Deactivate
+   ↓
+Backend gets updated
+   ↓
+API GET /users/101
+   ↓
+Verify status = Inactive
+```
+
+### Why is this useful?
+
+Imagine the UI shows:
+
+```
+Status: Inactive
+```
+
+But because of a bug, the backend actually still has:
+
+```
+status: Active
+```
+
+A UI-only test might pass.
+
+API validation can catch the backend problem.
+
+### 🎯 Interview answer
+
+> I perform the required action through the UI and then use an API request to verify that the corresponding backend data was updated correctly. For example, after deactivating a user through the UI, I can call the user GET API and verify that the status has changed to `Inactive`.
