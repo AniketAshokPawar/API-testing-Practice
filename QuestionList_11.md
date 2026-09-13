@@ -1316,3 +1316,121 @@ test('Get user API', async ({ request }) => {
 Interview answer:
 
 > In Playwright, I use the `request` fixture to send API requests. I validate the response status, JSON body, fields, headers, and error scenarios using Playwright assertions.
+
+
+19\. How do you perform GET, POST, PUT, PATCH, and DELETE?
+==========================================================
+
+```
+import { test, expect } from '@playwright/test';
+
+test('HTTP methods using Playwright', async ({ request }) => {
+  // GET
+  const getResponse = await request.get('/users/101');
+  expect(getResponse.status()).toBe(200);
+
+  // POST
+  const postResponse = await request.post('/users', {
+    data: {
+      name: 'Aniket',
+      email: 'aniket@test.com',
+    },
+  });
+  expect(postResponse.status()).toBe(201);
+
+  // PUT
+  const putResponse = await request.put('/users/101', {
+    data: {
+      name: 'Updated Aniket',
+      email: 'updated@test.com',
+      status: 'Active',
+    },
+  });
+  expect(putResponse.status()).toBe(200);
+
+  // PATCH
+  const patchResponse = await request.patch('/users/101', {
+    data: {
+      status: 'Inactive',
+    },
+  });
+  expect(patchResponse.status()).toBe(200);
+
+  // DELETE
+  const deleteResponse = await request.delete('/users/101');
+  expect(deleteResponse.status()).toBe(204);
+});
+```
+
+### Quick syntax
+
+```
+request.get(url)
+request.post(url, { data: body })
+request.put(url, { data: body })
+request.patch(url, { data: body })
+request.delete(url)
+```
+
+Interview answer:
+
+> Playwright provides separate methods for each HTTP operation. I use `get()` for reading, `post()` for creating, `put()` for replacement, `patch()` for partial updates, and `delete()` for deleting resources.
+
+> The expected status code depends on the API contract. For example, POST commonly returns 201 and DELETE commonly returns 204, but these are not guaranteed for every API.
+
+20\. How do you validate status code, body, fields, and headers?
+================================================================
+
+```
+import { test, expect } from '@playwright/test';
+
+test('Validate complete API response', async ({ request }) => {
+  const response = await request.get('/users/101');
+
+  // 1. Validate status code
+  expect(response.status()).toBe(200);
+
+  // 2. Validate successful response
+  await expect(response).toBeOK();
+
+  // 3. Read response body
+  const body = await response.json();
+
+  // 4. Validate complete body or important fields
+  expect(body).toEqual(
+    expect.objectContaining({
+      id: 101,
+      name: 'Aniket',
+    }),
+  );
+
+  // 5. Validate individual fields
+  expect(body.id).toBe(101);
+  expect(body.name).toBe('Aniket');
+  expect(body.email).toContain('@');
+
+  // 6. Validate response headers
+  const headers = response.headers();
+
+  expect(headers['content-type'])
+    .toContain('application/json');
+});
+```
+
+### `status()` vs `toBeOK()`
+
+```
+expect(response.status()).toBe(200);
+```
+
+Checks for exactly status 200.
+
+```
+await expect(response).toBeOK();
+```
+
+Checks whether the response is generally successful, usually within the 2xx range.
+
+### Interview answer
+
+> I validate the exact status code using `response.status()`. Then I parse the body using `response.json()` and verify important fields with assertions. I also check response headers such as `content-type`. When I only need to verify that the response is successful, I use `toBeOK()`.
