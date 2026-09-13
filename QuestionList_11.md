@@ -874,3 +874,276 @@ That's **authorization**.
 ### 🎯 Interview answer
 
 > Authentication verifies the identity of the user or client, while authorization determines what that authenticated user or client is allowed to access or perform.
+
+11\. ⭐⭐⭐ What is Bearer token authentication and how do you use it? What is API-key authentication and Basic authentication? | ⭐⭐⭐ |
+=================================================
+
+Think of authentication as the API asking:
+
+> **"Before I give you this data or allow you to perform this action, how do I know you are allowed to access it?"**
+
+Without authentication, anyone who knows the API URL could potentially call it.
+
+Let's understand the 3 methods using **one common example: a banking API**.
+
+* * * * *
+
+First: What happens WITHOUT authentication?
+===========================================
+
+Suppose a banking API has:
+
+```
+GET /accounts/12345/balance
+```
+
+If there is **no authentication**, someone could simply send:
+
+```
+GET /accounts/12345/balance
+```
+
+and potentially get:
+
+```
+{
+  "account": "12345",
+  "balance": 85000
+}
+```
+
+That's obviously dangerous.
+
+So the API says:
+
+> "Prove who you are / prove that you're allowed to access me."
+
+That's where authentication comes in.
+
+* * * * *
+
+1\. Bearer Token 🔐
+===================
+
+### Think of it as:
+
+**"I logged in. Here is my access pass."**
+
+Suppose you log into a banking application:
+
+```
+Username: Aniket
+Password: ********
+```
+
+The server verifies your credentials.
+
+Then it gives you a token:
+
+```
+eyJhbGciOiJIUzI1NiIs...
+```
+
+Now when your application wants your account balance, it sends:
+
+```
+GET /accounts/12345/balance
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+The server checks the token.
+
+If valid:
+
+```
+{
+  "balance": 85000
+}
+```
+
+If invalid/expired:
+
+```
+401 Unauthorized
+```
+
+### Why is this useful?
+
+Because you **don't send your username/password with every API request**.
+
+You login once → receive token → use token for subsequent requests.
+
+### Where is Bearer token commonly used?
+
+Very common in:
+
+-   Web applications
+-   Mobile applications
+-   REST APIs
+-   Microservices
+-   OAuth 2.0-based systems
+
+### Simple real-life analogy
+
+You enter an office.
+
+At reception:
+
+> "Show your ID."
+
+After verification, they give you an **access badge**.
+
+For the rest of the day, you show the badge to enter authorized areas.
+
+**Login = verification**
+
+**Bearer token = access badge**
+
+* * * * *
+
+2\. API Key 🔑
+==============
+
+API key is slightly different.
+
+Think:
+
+> **"I am an application/service that has been given a key to use your API."**
+
+Suppose you create an application that uses a weather API.
+
+You register your application with the weather API provider.
+
+They give you:
+
+```
+API Key = abc123xyz
+```
+
+Whenever your application asks for weather:
+
+```
+GET /weather?city=Pune
+x-api-key: abc123xyz
+```
+
+The weather server checks:
+
+```
+Is abc123xyz a valid API key?
+```
+
+If yes:
+
+```
+{
+  "city": "Pune",
+  "temperature": 28
+}
+```
+
+If not:
+
+```
+401 Unauthorized
+```
+
+### Why is API key useful?
+
+The API provider can identify:
+
+> "Which application is using my API?"
+
+It can also help with:
+
+-   Usage limits
+-   Tracking API usage
+-   Controlling access
+-   Billing
+-   Revoking access to a particular application
+
+### Where is API key commonly used?
+
+For example:
+
+-   Weather APIs
+-   Maps APIs
+-   Payment/third-party APIs
+-   Public developer APIs
+-   AI/third-party service APIs
+
+### Simple analogy
+
+Imagine a hotel gives a **special key card to a travel agency** so its employees can access a particular service.
+
+The key identifies the **application/service** using the API.
+
+* * * * *
+
+3\. Basic Authentication 👤🔑
+=============================
+
+This is the simplest one.
+
+You directly send:
+
+```
+Username + Password
+```
+
+For example:
+
+```
+username = admin
+password = admin123
+```
+
+The request uses:
+
+```
+Authorization: Basic <encoded username:password>
+```
+
+You don't normally manually create that Base64 value; the client/library does it.
+
+### Playwright
+
+```
+const response = await request.get('/users/101', {
+  httpCredentials: {
+    username: 'admin',
+    password: 'admin123',
+  },
+});
+```
+
+The server checks:
+
+```
+Username = admin?
+Password = admin123?
+```
+
+If correct:
+
+```
+200 OK
+```
+
+If incorrect:
+
+```
+401 Unauthorized
+```
+
+### Where is Basic Auth useful?
+
+You may see it in:
+
+-   Internal APIs
+-   Legacy applications
+-   Simple services
+-   Development/testing environments
+-   Some admin tools
+
+It is less common for modern public applications compared with token-based authentication.
